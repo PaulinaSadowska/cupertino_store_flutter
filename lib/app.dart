@@ -23,11 +23,6 @@ class CupertinoStoreApp extends StatelessWidget {
   }
 }
 
-class AppStateModel extends ChangeNotifier {
-  List<Int> _availableProducts = [];
-
-}
-
 class Tab {
   final String label;
   final IconData icon;
