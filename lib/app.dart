@@ -36,7 +36,7 @@ class CupertinoStoreHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var tabs = [
-      Tab('Products', CupertinoIcons.home),
+      Tab('Products!', CupertinoIcons.home),
       Tab('Search', CupertinoIcons.search),
       Tab('Cart', CupertinoIcons.shopping_cart)
     ];
