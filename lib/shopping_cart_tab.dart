@@ -1,7 +1,11 @@
-import 'package:cupertino_store_flutter/app.dart';
+import 'package:cupertino_store_flutter/ShoppingCartItem.dart';
 import 'package:cupertino_store_flutter/model/app_state_model.dart';
+import 'package:cupertino_store_flutter/styles.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
+
+const double _kDateTimePickerHeight = 216;
 
 class ShoppingCartTab extends StatefulWidget {
   const ShoppingCartTab({super.key});
@@ -18,6 +22,7 @@ class _ShoppingCartTabState extends State<ShoppingCartTab> {
   String? location;
   String? pin;
   DateTime dateTime = DateTime.now();
+  final _currencyFormat = NumberFormat.currency(symbol: '\$');
 
   Widget _buildNameField() {
     return CupertinoTextField(
@@ -89,6 +94,49 @@ class _ShoppingCartTabState extends State<ShoppingCartTab> {
     );
   }
 
+  Widget _buildDateAndTimePicker(BuildContext context) {
+    return Column(
+      children: <Widget>[
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: <Widget>[
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: const <Widget>[
+                Icon(
+                  CupertinoIcons.clock,
+                  color: CupertinoColors.lightBackgroundGray,
+                  size: 28,
+                ),
+                SizedBox(width: 6),
+                Text(
+                  'Delivery time',
+                  style: Styles.deliveryTimeLabel,
+                ),
+              ],
+            ),
+            Text(
+              DateFormat.yMMMd().add_jm().format(dateTime),
+              style: Styles.deliveryTime,
+            ),
+          ],
+        ),
+        SizedBox(
+          height: _kDateTimePickerHeight,
+          child: CupertinoDatePicker(
+            mode: CupertinoDatePickerMode.dateAndTime,
+            initialDateTime: dateTime,
+            onDateTimeChanged: (newDateTime) {
+              setState(() {
+                dateTime = newDateTime;
+              });
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _wrapInPadding(Widget widget) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -99,6 +147,7 @@ class _ShoppingCartTabState extends State<ShoppingCartTab> {
   SliverChildBuilderDelegate _buildSliverChildBuilderDelegate(
       AppStateModel model) {
     return SliverChildBuilderDelegate((context, index) {
+      final productIndex = index - 4;
       switch (index) {
         case 0:
           return _wrapInPadding(_buildNameField());
@@ -106,8 +155,49 @@ class _ShoppingCartTabState extends State<ShoppingCartTab> {
           return _wrapInPadding(_buildEmailField());
         case 2:
           return _wrapInPadding(_buildLocationField());
+        case 3:
+          return _wrapInPadding(_buildDateAndTimePicker(context));
         default:
-        // Do nothing. For now.
+          if (model.productsInCart.length > productIndex) {
+            return ShoppingCartItem(
+              index: index,
+              product: model.getProductById(
+                  model.productsInCart.keys.toList()[productIndex]),
+              quantity: model.productsInCart.values.toList()[productIndex],
+              lastItem: productIndex == model.productsInCart.length - 1,
+              formatter: _currencyFormat,
+            );
+          } else if (model.productsInCart.keys.length == productIndex &&
+              model.productsInCart.isNotEmpty) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: <Widget>[
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: <Widget>[
+                      Text(
+                        'Shipping '
+                        '${_currencyFormat.format(model.shippingCost)}',
+                        style: Styles.productRowItemPrice,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Tax ${_currencyFormat.format(model.tax)}',
+                        style: Styles.productRowItemPrice,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Total ${_currencyFormat.format(model.totalCost)}',
+                        style: Styles.productRowTotal,
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            );
+          }
       }
       return null;
     });
